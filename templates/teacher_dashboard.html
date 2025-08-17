@@ -1,0 +1,114 @@
+<!-- templates/teacher_dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Certification Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">Certification Tracker</div>
+            <div class="user-info">
+                <div class="user-name">{{ session.full_name }}</div>
+                <div class="user-role">Teacher</div>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="{{ url_for('teacher_dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('add_student') }}">Add Student</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <header>
+                <h1>Teacher Dashboard</h1>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </header>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Total Students</h3>
+                    <div class="stat-value">{{ total_students }}</div>
+                </div>
+                {% for course in certificates_by_course %}
+                <div class="stat-card">
+                    <h3>{{ course.course_name }}</h3>
+                    <div class="stat-value">{{ course.total_certificates }}</div>
+                    <div class="stat-label">Certificates</div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="dashboard-charts">
+                <div class="chart-container">
+                    <h3>Certificates by Course</h3>
+                    <canvas id="certificatesByCourse"></canvas>
+                </div>
+            </div>
+            
+            <div class="students-list">
+                <h3>Students</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Certificates</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in certificates_by_student %}
+                            <tr>
+                                <td>{{ student.full_name }}</td>
+                                <td>{{ student.certificate_count }}</td>
+                                <td>
+                                    <a href="{{ url_for('view_student', student_id=student.user_id) }}" class="btn btn-sm">View Details</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3">No students added yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        // Chart for certificates by course
+        const courseCtx = document.getElementById('certificatesByCourse').getContext('2d');
+        new Chart(courseCtx, {
+            type: 'pie',
+            data: {
+                labels: [{% for course in certificates_by_course %}'{{ course.course_name }}',{% endfor %}],
+                datasets: [{
+                    data: [{% for course in certificates_by_course %}{{ course.total_certificates }},{% endfor %}],
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                tooltips: {
+                    enabled: true
+                }
+            }
+        });
+    </script>
+</body>
+</html>
