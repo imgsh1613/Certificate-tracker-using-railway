@@ -1,6 +1,6 @@
 import mysql.connector
 import os
-
+'''
 # Get database credentials from environment variables
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_USER = os.getenv('DB_USER', 'root')
@@ -12,14 +12,26 @@ conn = mysql.connector.connect(
     user=DB_USER,
     password=DB_PASSWORD
 )
+'''
+
+conn = mysql.connector.connect(
+  host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+  port = 4000,
+  user = "39KZ8xro8WmzgLR.root",
+  password = "E7UakFtZmhsBnXL7",
+  database = "test",
+  ssl_ca = "isrgrootx1.pem",
+  ssl_verify_cert = True,
+  ssl_verify_identity = True
+)
 
 cursor = conn.cursor()
 
 # Create the database if it doesn't exist
-cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
+cursor.execute(f"CREATE DATABASE IF NOT EXISTS certification_tracker")
 
 # Use the created database
-cursor.execute(f"USE {DB_NAME}")
+cursor.execute(f"USE certification_tracker")
 
 # Create the users table (with password field)
 cursor.execute("""
