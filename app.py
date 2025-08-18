@@ -19,11 +19,14 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # Database connection function with environment variables
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', 'root'),
-        database=os.getenv('DB_NAME', 'certification_tracker'),
-        port=int(os.getenv('DB_PORT', '3306'))
+        host = "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
+        port = 4000,
+        user = "39KZ8xro8WmzgLR.root",
+        password = "E7UakFtZmhsBnXL7",
+        database = "certification_tracker",
+        ssl_ca = "isrgrootx1.pem",
+        ssl_verify_cert = True,
+        ssl_verify_identity = True
     )
 
 def allowed_file(filename):
