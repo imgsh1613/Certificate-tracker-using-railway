@@ -59,8 +59,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('static', filename='uploads/certificates/' + cert.certificate_file) }}" 
-                                       class="btn btn-sm" target="_blank">View</a>
+                                    <a href="{{ cert.certificate_file }}" target="_blank" class="btn btn-sm" target="_blank">View</a>
                                 </td>
                             </tr>
                             {% else %}
@@ -109,3 +108,4 @@
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
+
