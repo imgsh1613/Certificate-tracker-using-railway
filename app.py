@@ -5,6 +5,8 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+import Cloudinary
+import Cloudinary.uploader
 
 app = Flask(__name__)
 
@@ -15,6 +17,13 @@ app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png'}
 
 # Ensure the upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+#Cloudinary configuration
+cloudinary.config(
+    cloud_name="dcxso5o6k",
+    api_key="355821633932741",
+    api_secret="D_fYnNpjQPBb13Xajqq88pmbWT4"
+)
 
 # Database connection function with environment variables
 def get_db_connection():
@@ -219,24 +228,29 @@ def upload_certificate():
         return redirect(url_for('student_dashboard'))
     
     if file and allowed_file(file.filename):
-        # Create unique filename
-        filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        
-        # Save to database
         try:
+            # Upload file to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                file,
+                folder="certificates",
+                public_id=str(uuid.uuid4()),
+                resource_type="auto"
+            )
+            file_url = upload_result['secure_url']  # Cloudinary hosted URL
+            
+            # Save to database with Cloudinary URL
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute(
                 '''INSERT INTO certificates 
                    (student_id, course_id, certificate_name, issue_date, certificate_file) 
                    VALUES (%s, %s, %s, %s, %s)''',
-                (student_id, course_id, certificate_name, issue_date, filename)
+                (student_id, course_id, certificate_name, issue_date, file_url)
             )
             conn.commit()
             cursor.close()
             conn.close()
+            
             flash('Certificate uploaded successfully!', 'success')
         except Exception as e:
             flash(f'Upload failed: {str(e)}', 'danger')
@@ -376,4 +390,5 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
     debug = os.getenv('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=port, debug=debug)
+
 
