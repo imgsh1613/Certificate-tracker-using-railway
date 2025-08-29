@@ -66,8 +66,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('static', filename='uploads/certificates/' + cert.certificate_file) }}" 
-                                       class="btn btn-sm" target="_blank">View</a>
+                                    <a href="{{ cert.certificate_file }}" class="btn btn-sm" target="_blank">View</a>
                                 </td>
                                 <td>
                                     {% if cert.verification_status == 'pending' %}
@@ -96,4 +95,5 @@
         </main>
     </div>
 </body>
+
 </html>
