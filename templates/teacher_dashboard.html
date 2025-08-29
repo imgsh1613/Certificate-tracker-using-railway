@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard - Certification Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+    <!-- Use CDN for Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -90,25 +91,50 @@
     
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script>
+        // Check if we have course data before creating the chart
+        {% if certificates_by_course %}
+        // Prepare data safely
+        const courseLabels = [
+            {% for course in certificates_by_course %}
+                '{{ course.course_name|safe }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        const courseData = [
+            {% for course in certificates_by_course %}
+                {{ course.total_certificates }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
         // Chart for certificates by course
         const courseCtx = document.getElementById('certificatesByCourse').getContext('2d');
         new Chart(courseCtx, {
             type: 'pie',
             data: {
-                labels: [{% for course in certificates_by_course %}'{{ course.course_name }}',{% endfor %}],
+                labels: courseLabels,
                 datasets: [{
-                    data: [{% for course in certificates_by_course %}{{ course.total_certificates }},{% endfor %}],
-                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'],
+                    data: courseData,
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69'],
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                tooltips: {
-                    enabled: true
+                plugins: {
+                    tooltip: {
+                        enabled: true
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
         });
+        {% else %}
+        // No data available - show message or empty chart
+        document.getElementById('certificatesByCourse').parentElement.innerHTML = '<p>No certificate data available yet.</p>';
+        {% endif %}
     </script>
 </body>
 </html>
+
