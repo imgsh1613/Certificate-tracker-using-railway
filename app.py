@@ -5,8 +5,8 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import Cloudinary
-import Cloudinary.uploader
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__)
 
@@ -390,6 +390,7 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
     debug = os.getenv('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=port, debug=debug)
+
 
 
 
