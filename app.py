@@ -18,15 +18,6 @@ app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'jpg', 'jpeg', 'png'}
 # Ensure the upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-'''
-#Cloudinary configuration
-cloudinary.config(
-    cloud_name="dcxso5o6k",
-    api_key="355821633932741",
-    api_secret="D_fYnNpjQPBb13Xajqq88pmbWT4"
-)
-'''
-
 #Cloudinary Configuration
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -399,6 +390,7 @@ if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))
     debug = os.getenv('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=port, debug=debug)
+
 
 
 
