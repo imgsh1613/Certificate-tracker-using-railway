@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard - Certification Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Use CDN for Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
@@ -56,9 +55,27 @@
                     <canvas id="certificatesByCourse"></canvas>
                 </div>
             </div>
+            <!-- Search Section -->
+            <div class="search-section">
+                <h3>Search Students</h3>
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        id="studentSearch" 
+                        class="search-input" 
+                        placeholder="Type student name to search..."
+                        autocomplete="off"
+                    >
+                    <button id="clearSearch" class="clear-search">Clear</button>
+                </div>
+                <div id="searchResults" class="search-results-info"></div>
+            </div>
             
             <div class="students-list">
-                <h3>Students</h3>
+                <h3>
+                    Students 
+                    <span id="studentCount" class="student-count">({{ certificates_by_student|length }})</span>
+                </h3>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -68,26 +85,30 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="studentsTableBody">
                             {% for student in certificates_by_student %}
-                            <tr>
-                                <td>{{ student.full_name }}</td>
+                            <tr class="student-row" data-student-name="{{ student.full_name.lower() }}">
+                                <td class="student-name">{{ student.full_name }}</td>
                                 <td>{{ student.certificate_count }}</td>
                                 <td>
                                     <a href="{{ url_for('view_student', student_id=student.user_id) }}" class="btn btn-sm">View Details</a>
                                 </td>
                             </tr>
                             {% else %}
-                            <tr>
+                            <tr id="noStudentsRow">
                                 <td colspan="3">No students added yet</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+                    <div id="noSearchResults" class="no-results" style="display: none;">
+                        No students found matching your search.
+                    </div>
                 </div>
             </div>
         </main>
     </div>
+            
     
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script>
@@ -134,6 +155,87 @@
         // No data available - show message or empty chart
         document.getElementById('certificatesByCourse').parentElement.innerHTML = '<p>No certificate data available yet.</p>';
         {% endif %}
+
+        // Student search functionality
+        const searchInput = document.getElementById('studentSearch');
+        const clearButton = document.getElementById('clearSearch');
+        const searchResults = document.getElementById('searchResults');
+        const studentRows = document.querySelectorAll('.student-row');
+        const studentCount = document.getElementById('studentCount');
+        const noSearchResults = document.getElementById('noSearchResults');
+        const studentsTable = document.querySelector('.table-responsive table');
+        const totalStudents = {{ certificates_by_student|length }};
+        
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+        
+        function performSearch() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            let visibleCount = 0;
+            
+            if (searchTerm === '') {
+                // Show all students
+                studentRows.forEach(row => {
+                    row.style.display = '';
+                    const nameCell = row.querySelector('.student-name');
+                    const originalName = nameCell.textContent;
+                    nameCell.innerHTML = originalName;
+                });
+                visibleCount = totalStudents;
+                searchResults.textContent = '';
+                noSearchResults.style.display = 'none';
+                studentsTable.style.display = '';
+            } else {
+                // Filter students
+                studentRows.forEach(row => {
+                    const studentName = row.dataset.studentName;
+                    const nameCell = row.querySelector('.student-name');
+                    const originalName = nameCell.textContent;
+                    
+                    if (studentName.includes(searchTerm)) {
+                        row.style.display = '';
+                        nameCell.innerHTML = highlightText(originalName, searchInput.value.trim());
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                        nameCell.innerHTML = originalName;
+                    }
+                });
+                
+                if (visibleCount === 0) {
+                    noSearchResults.style.display = 'block';
+                    studentsTable.style.display = 'none';
+                } else {
+                    noSearchResults.style.display = 'none';
+                    studentsTable.style.display = '';
+                }
+                
+                searchResults.textContent = `Showing ${visibleCount} of ${totalStudents} students`;
+            }
+            
+            studentCount.textContent = `(${visibleCount})`;
+        }
+        
+        // Event listeners
+        searchInput.addEventListener('input', performSearch);
+        
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        });
+        
+        // Focus search on Ctrl+F or Cmd+F
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
     </script>
 </body>
 </html>
